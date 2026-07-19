@@ -1,0 +1,20 @@
+# Full environment used for training/EDA/model-selection (src/*.py scripts).
+# For CI testing and production deployment of the Flask app only, use the
+# smaller requirements-app.txt instead (keeps CI fast and avoids an
+# unrelated torch+lightgbm import-order segfault on macOS ARM, see plan.md).
+numpy==1.26.4
+pandas==2.2.2
+scikit-learn==1.5.1
+scipy==1.13.1
+torch==2.3.1
+xgboost==2.1.0
+lightgbm==4.4.0
+catboost==1.2.5
+matplotlib==3.9.1
+seaborn==0.13.2
+joblib==1.4.2
+Flask==3.0.3
+Werkzeug==3.0.3
+gunicorn==22.0.0
+pytest==8.2.2
+requests==2.32.3

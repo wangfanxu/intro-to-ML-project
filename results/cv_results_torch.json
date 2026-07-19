@@ -1,0 +1,10 @@
+[
+  {
+    "model": "pytorch_mlp",
+    "cv_auc_mean": 0.9948060008178226,
+    "cv_auc_std": 0.001018928184159216,
+    "cv_accuracy_mean": 0.974401082544607,
+    "cv_accuracy_std": 0.0020497430281239044,
+    "elapsed_seconds": 38.5
+  }
+]

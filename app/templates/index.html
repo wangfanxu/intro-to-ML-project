@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Malware Detector — Intro to ML</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header>
+    <h1>PE Malware Classifier</h1>
+    <p>Static-analysis features in, goodware/malware prediction out. Model: LightGBM
+       (10-fold CV AUC 0.998, hold-out test AUC 0.999).</p>
+  </header>
+
+  {% if error %}
+    <div class="alert error">Error: {{ error }}</div>
+  {% endif %}
+
+  <section class="card">
+    <h2>1. Manual single prediction</h2>
+    <div class="demo-buttons">
+      <button type="button" onclick="fillDemo('goodware')">Load demo goodware row</button>
+      <button type="button" onclick="fillDemo('malware')">Load demo malware row</button>
+    </div>
+    <form method="post" action="{{ url_for('predict_form') }}" id="manual-form">
+      <div class="grid">
+        {% for col in columns %}
+        <label>
+          {{ col }}
+          <input type="text" name="{{ col }}" id="field_{{ col }}"
+                 value="{{ form_values[col] if form_values else '' }}">
+        </label>
+        {% endfor %}
+      </div>
+      <button type="submit">Predict</button>
+    </form>
+
+    {% if result %}
+    <div class="result {{ 'malware' if result.prediction == 1 else 'goodware' }}">
+      <strong>Prediction: {{ result.label | upper }}</strong>
+      (P(malware) = {{ "%.4f" | format(result.probability_malware) }})
+    </div>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <h2>2. Batch upload (CSV)</h2>
+    <p>Upload a CSV with the 27 raw feature columns. Include a <code>Label</code>
+       column to also get AUC / accuracy / confusion matrix (e.g. use
+       <code>data/demo_test_sample.csv</code> from the repo for a quick demo).</p>
+    <form method="post" action="{{ url_for('upload') }}" enctype="multipart/form-data">
+      <input type="file" name="file" accept=".csv" required>
+      <button type="submit">Upload &amp; Predict</button>
+    </form>
+
+    {% if upload_result %}
+      <div class="result">
+        <p>Rows processed: {{ upload_result.n_rows }}</p>
+        {% if upload_result.has_labels %}
+          <p><strong>AUC:</strong> {{ upload_result.auc }} &nbsp;
+             <strong>Accuracy:</strong> {{ upload_result.accuracy }}</p>
+          <table class="cm">
+            <tr><th></th><th>Pred goodware</th><th>Pred malware</th></tr>
+            <tr><th>True goodware</th><td>{{ upload_result.confusion_matrix[0][0] }}</td><td>{{ upload_result.confusion_matrix[0][1] }}</td></tr>
+            <tr><th>True malware</th><td>{{ upload_result.confusion_matrix[1][0] }}</td><td>{{ upload_result.confusion_matrix[1][1] }}</td></tr>
+          </table>
+        {% endif %}
+        <p>First {{ upload_result.predictions|length }} predictions:</p>
+        <pre>{{ upload_result.predictions }}</pre>
+      </div>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <h2>3. API</h2>
+    <p><code>POST /predict</code> with a JSON body (single object or list of
+       objects containing the 27 feature keys) returns predictions.
+       <code>GET /health</code> returns service status.</p>
+  </section>
+
+  <script>
+    const demoRows = {{ demo_rows | tojson }};
+    function fillDemo(kind) {
+      const row = demoRows[kind];
+      for (const key in row) {
+        const el = document.getElementById('field_' + key);
+        if (el) el.value = row[key];
+      }
+    }
+  </script>
+</body>
+</html>
